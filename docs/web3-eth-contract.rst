@@ -317,6 +317,27 @@ Returns
 
 ------------------------------------------------------------------------------
 
+.. _eth-contract-blockHeaderTimeout:
+
+blockHeaderTimeout
+=====================
+
+.. code-block:: javascript
+
+    web3.eth.Contract.blockHeaderTimeout
+    contract.blockHeaderTimeout // on contract instance
+
+The ``blockHeaderTimeout`` is used over socket-based connections. This option defines the amount seconds it should wait for "newBlockHeaders" event before falling back to polling to fetch transaction receipt.
+
+
+-------
+Returns
+-------
+
+``number``: The current value of blockHeaderTimeout (default: 10 seconds)
+
+------------------------------------------------------------------------------
+
 .. _eth-contract-module-transactionconfirmationblocks:
 
 transactionConfirmationBlocks
@@ -837,6 +858,8 @@ Parameters
     * ``gasPrice`` - ``String`` (optional): The gas price in wei to use for this transaction.
     * ``gas`` - ``Number`` (optional): The maximum gas provided for this transaction (gas limit).
     * ``value`` - ``Number|String|BN|BigNumber``(optional): The value transferred for the transaction in wei.
+    * ``nonce`` - ``Number`` (optional): the nonce number of transaction
+
 2. ``callback`` - ``Function`` (optional): This callback will be fired first with the "transactionHash", or with an error object as the first argument.
 
 -------
