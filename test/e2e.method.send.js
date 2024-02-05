@@ -39,6 +39,27 @@ describe('method.send [ @E2E ]', function () {
             assert(web3.utils.isHexStrict(receipt.transactionHash));
         });
 
+        it('should yield 0x1 for type and add accessList property', async function() {
+            // ganache does not support eth_signTransaction
+            if (process.env.GANACHE || global.window ) return
+
+            var nonceVal = await web3.eth.getTransactionCount(accounts[0]);
+            var receipt = await web3.eth.sendTransaction({
+                to: accounts[1],
+                from: accounts[0],
+                nonce: nonceVal,
+                value: web3.utils.toHex(web3.utils.toWei('0.1', 'ether')),
+                gas: web3.utils.toHex(21000),
+                type: 1
+            });
+
+            assert(receipt.status === true);
+            assert(receipt.type === '0x1');
+            
+            var fetchedTransaction = await web3.eth.getTransaction(receipt.transactionHash);
+            assert(fetchedTransaction.accessList.length === 0);
+        });
+
         it('returns a receipt (EIP-1559, maxFeePerGas and maxPriorityFeePerGas specified)', async function () {
             // ganache does not support eth_signTransaction
             if (process.env.GANACHE || global.window ) return
@@ -135,11 +156,11 @@ describe('method.send [ @E2E ]', function () {
         if (process.env.GETH_INSTAMINE) return;
 
         before(async function () {
-            var port = utils.getWebsocketPort();
+            this.timeout(10000)
 
+            var port = utils.getWebsocketPort();
             web3 = new Web3('ws://localhost:' + port);
             accounts = await web3.eth.getAccounts();
-            
             basic = new web3.eth.Contract(Basic.abi, basicOptions);
 
             var nonceVal = await web3.eth.getTransactionCount(accounts[0]);

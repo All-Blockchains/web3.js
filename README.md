@@ -1,3 +1,18 @@
+## Maintenance Countdown:
+Commencing from January 1, 2024, a 90-day countdown has been initiated, signaling the transition of Web3.js version 1.x into an end-of-maintenance phase.
+
+### Timeline of Changes:
+
+- 90-Day Countdown (1/1/24 - 3/31/24):
+  During this period, we strongly encourage users to plan accordingly and initiate the [upgrade to Web3.js version 4.x](https://docs.web3js.org/guides/web3_upgrade_guide/x/)
+
+- No New Bug Fixes (4/1/24 onwards):
+  Starting April 1, 2024, new bug fixes for Web3.js version 1.x will no longer be provided. To benefit from continued support and access to new features, we recommend [upgrading to Web3.js version 4.x](https://docs.web3js.org/guides/web3_upgrade_guide/x/)
+
+- End of Security Fixes (7/1/24):
+  Security fixes for Web3.js version 1.x will be discontinued from July 1, 2024. [Upgrading to Web3.js version 4.x](https://docs.web3js.org/guides/web3_upgrade_guide/x/) is crucial to ensure the security of your applications.
+
+
 <p style="text-align: center;">
   <img src="assets/logo/web3js.jpg" width="200" alt="web3.js">
 </p>
@@ -17,7 +32,9 @@ Please read the [documentation][docs] for more.
 
 ## Installation
 
-### Node
+You can install the package either using [NPM](https://www.npmjs.com/package/web3) or using [Yarn](https://yarnpkg.com/package/web3)
+
+### Using NPM
 
 ```bash
 npm install web3
@@ -108,7 +125,9 @@ If you are using the types in a `commonjs` module, like in a Node app, you just 
 
 ### Web3 and Create-react-app
 
-If you are using create-react-app version >=5 you may run into issues building. This is because NodeJS polyfills are not included in the latest version of create-react-app.
+**1.8 UPDATE: If you are facing any issues with create-react-app or angular, make sure you are using a web3 version of 1.8.0 or greater, as its been fixed** 
+
+If you are using create-react-app version >=5 you may run into issues building. This is because NodeJS polyfills are not included in the latest version of create-react-app. 
 
 ### Solution
 
@@ -308,7 +327,7 @@ This project adheres to the [Release Guidelines](./REVIEW.md).
 [stackexchange-url]: https://ethereum.stackexchange.com/questions/tagged/web3js
 [gitpoap-image]: https://public-api.gitpoap.io/v1/repo/ChainSafe/web3.js/badge
 [gitpoap-url]: https://www.gitpoap.io/gh/ChainSafe/web3.js
-[4x-release]: https://github.com/ChainSafe/web3.js/releases/tag/v4.0.0-alpha.0 
+[4x-release]: https://www.npmjs.com/package/web3
 [4xdoc]: https://docs.web3js.org/
 [cdnhits-image]: https://data.jsdelivr.com/v1/package/npm/web3/badge
 [cdnhits-url]: https://www.jsdelivr.com/package/npm/web3

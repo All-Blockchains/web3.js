@@ -1,5 +1,5 @@
 {
-  "version": "1.8.0",
+  "version": "1.10.4",
   "command": {
     "init": {
       "exact": true
@@ -11,5 +11,6 @@
   },
   "packages": [
     "packages/*"
-  ]
+  ],
+  "useNx": false
 }

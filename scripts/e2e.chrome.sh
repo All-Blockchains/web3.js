@@ -11,9 +11,8 @@ set -o errexit
 trap cleanup EXIT
 
 cleanup() {
-  if [ -n "$client" ]; then
-    kill -9 $client
-  fi
+    processID=`lsof -Fp -i:8545| grep '^p'`
+    kill -9 ${processID##p}
 }
 
 echo " "
@@ -23,11 +22,11 @@ echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 echo " "
 
 # Launch ganache, track its PID and wait until port is open
-npx ganache-cli --noVMErrorsOnRPCResponse > /dev/null &
+npx ganache --miner.instamine eager --miner.blockTime 0.5 --server.ws true > /dev/null &
 client=$!
 npx wait-port 8545
 
 # Test
-karma start \
+npx karma start \
   --single-run \
   --browsers ChromeHeadless

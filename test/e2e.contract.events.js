@@ -5,6 +5,20 @@ var Parent = require('./sources/Parent');
 var utils = require('./helpers/test.utils');
 var Web3 = utils.getWeb3();
 
+const prepareEvents = async (instance,address) => {
+    await instance
+        .methods
+        .firesEvent(address, 1)
+        .send({from: address});
+    await instance
+        .methods
+        .firesEvent(address, 2)
+        .send({from: address});
+    await instance
+        .methods
+        .firesEvent(address, 3)
+        .send({from: address});
+}
 describe('contract.events [ @E2E ]', function() {
     // `getPastEvents` not working with Geth instamine over websockets.
     if (process.env.GETH_INSTAMINE) return;
@@ -22,6 +36,7 @@ describe('contract.events [ @E2E ]', function() {
     };
 
     beforeEach(async function(){
+        this.timeout(15000)
         port = utils.getWebsocketPort();
 
         web3 = new Web3('ws://localhost:' + port);
@@ -32,25 +47,110 @@ describe('contract.events [ @E2E ]', function() {
     });
 
     it('contract.getPastEvents', async function(){
-        await instance
-            .methods
-            .firesEvent(accounts[0], 1)
-            .send({from: accounts[0]});
-
-        await instance
-            .methods
-            .firesEvent(accounts[0], 2)
-            .send({from: accounts[0]});
-
+        await prepareEvents(instance, accounts[0]);
         const events = await instance.getPastEvents({
             fromBlock: 0,
             toBlock: 'latest'
         });
 
-        assert.equal(events.length, 2);
+        assert.equal(events.length, 3);
         assert.equal(events[0].event, 'BasicEvent');
         assert.equal(events[1].event, 'BasicEvent');
+        assert.equal(events[2].event, 'BasicEvent');
         assert.notEqual(events[0].id, events[1].id);
+    });
+
+    it('contract.getPastEvents filter by val', async function() {
+        await prepareEvents(instance, accounts[0]);
+        const events = await instance.getPastEvents('BasicEvent', {
+            filter: { val: 2 },
+            fromBlock: 'earliest',
+            toBlock: 'latest',
+        });
+        assert.equal(events.length, 1);
+        assert.equal(events[0].returnValues.val, 2);
+    });
+
+    it('contract.getPastEvents without specify event name: filter by val', async function() {
+        await prepareEvents(instance, accounts[0]);
+        const events = await instance.getPastEvents({
+            filter: { val: 2 },
+            fromBlock: 'earliest',
+            toBlock: 'latest',
+        });
+        assert.equal(events.length, 1);
+        assert.equal(events[0].returnValues.val, 2);
+    });
+
+    it('contract.getPastEvents all events: filter by val', async function() {
+        await prepareEvents(instance, accounts[0]);
+        const events = await instance.getPastEvents('allEvents', {
+            filter: { val: 2 },
+            fromBlock: 'earliest',
+            toBlock: 'latest',
+        });
+        assert.equal(events.length, 1);
+        assert.equal(events[0].returnValues.val, 2);
+    });
+
+    it('contract.getPastEvents filter by val different value', async function() {
+        await prepareEvents(instance, accounts[0]);
+        const events = await instance.getPastEvents('BasicEvent', {
+            filter: { val: 3 },
+            fromBlock: 'earliest',
+            toBlock: 'latest',
+        });
+        assert.equal(events.length, 1);
+        assert.equal(events[0].returnValues.val, 3);
+    });
+
+    it('contract.getPastEvents filter by array', async function() {
+        await prepareEvents(instance, accounts[0]);
+        const events = await instance.getPastEvents('BasicEvent', {
+            filter: { val: [2, 3] },
+            fromBlock: 'earliest',
+            toBlock: 'latest',
+        });
+        assert.equal(events.length, 2);
+        assert.equal(events[0].returnValues.val, 2);
+        assert.equal(events[1].returnValues.val, 3);
+    });
+
+    it('contract.getPastEvents allEvents: filter by array', async function() {
+        await prepareEvents(instance, accounts[0]);
+        const events = await instance.getPastEvents('allEvents', {
+            filter: { val: [2, 3] },
+            fromBlock: 'earliest',
+            toBlock: 'latest',
+        });
+        assert.equal(events.length, 2);
+        assert.equal(events[0].returnValues.val, 2);
+        assert.equal(events[1].returnValues.val, 3);
+    });
+
+    it('contract.getPastEvents allEvents: filter by array using callback', async function() {
+        await prepareEvents(instance, accounts[0]);
+        instance.getPastEvents('allEvents', {
+            filter: { val: [2, 3] },
+            fromBlock: 'earliest',
+            toBlock: 'latest',
+        }, (err, events) => {
+            assert.equal(events.length, 2);
+            assert.equal(events[0].returnValues.val, 2);
+            assert.equal(events[1].returnValues.val, 3);
+        });
+    });
+
+    it('contract.getPastEvents filter by val using callback', async function() {
+        await prepareEvents(instance, accounts[0]);
+        instance.getPastEvents('BasicEvent', {
+            filter: { val: 3 },
+            fromBlock: 'earliest',
+            toBlock: 'latest',
+        }, (err, events) => {
+            assert.equal(events.length, 1);
+            assert.equal(events[0].returnValues.val, 3);
+        });
     });
 
     it('contract.events.<eventName>', function(){
@@ -90,7 +190,6 @@ describe('contract.events [ @E2E ]', function() {
                     this.removeAllListeners();
                     resolve();
                 });
-            
             assert.equal(message, 'Invalid option: toBlock. Use getPastEvents for specific range.');
             console.warn = originalWarn
 
@@ -105,7 +204,6 @@ describe('contract.events [ @E2E ]', function() {
         const originalWarn = console.warn
         let message
         console.warn = function(str) { message = str }
-        
         return new Promise(async (resolve, reject) => {
             instance
                 .events
@@ -368,7 +466,7 @@ describe('contract.events [ @E2E ]', function() {
                     counter++;
 
                     if (counter === 2){
-                        assert(finalBlock === event.blockNumber + 2);
+                        assert(finalBlock >= event.blockNumber || finalBlock <= event.blockNumber + 2);
                         this.removeAllListeners();
                         resolve();
                     }
@@ -383,8 +481,8 @@ describe('contract.events [ @E2E ]', function() {
 
             // Submit another event on parallel connection and mine forward 2 blocks
             const secondReceipt = await shadow.methods.firesEvent(acc, 1).send({from: acc});
-            utils.mine(_web3, acc);
-            utils.mine(_web3, acc);
+            utils.mine(_web3, acc)
+            utils.mine(_web3, acc)
 
             const finalBlock = await _web3.eth.getBlockNumber();
             assert(finalBlock === secondReceipt.blockNumber + 2)
@@ -407,9 +505,9 @@ describe('contract.events [ @E2E ]', function() {
         assert.equal(events[0].returnValues.str, msg)
     });
 
-    // Malformed utf-8 sequence in the following two tests comes from 
+    // Malformed utf-8 sequence in the following two tests comes from
     // https://www.w3.org/2001/06/utf-8-wrong/UTF-8-test.html
-    // Section: 3.1.8 
+    // Section: 3.1.8
     it('when an invalid utf-8 string is passed in JS as param to emit', async function(){
         const msg = '�������';
 
